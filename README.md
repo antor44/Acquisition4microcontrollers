@@ -22,7 +22,7 @@ Components list:
 
 1 Arduino Nano 33 BLE Sense
 
-1 Prototype board
+1 Breadboard
 
 1 Remote control
 
@@ -44,7 +44,7 @@ Components list:
 
 1 Arduino UNO/Mega
 
-1 Prototype board or a shield with mini-prototype board
+1 Breadboard or a shield with mini-Breadboard
 
 1 Remote control
 
