@@ -19,12 +19,19 @@ This part of the programming code and the invented IR codes would not be valid f
 ![Screenshot](https://github.com/antor44/microcontrollers/blob/main/Receiver_Sense/Arduino_nano_sense_placa.jpg)
 
 Components list:
+
 1 Arduino Nano 33 BLE Sense
+
 1 Prototype board
+
 1 Remote control
+
 1 IR Receiver Module
+
 1 Pasive Buzzer
+
 Male-Male and Male-Female color-coded prototyping wires (22 AWG)
+
 USB-A Male to Micro USB Male cable
 
 #
@@ -34,15 +41,27 @@ USB-A Male to Micro USB Male cable
 ![Screenshot](https://github.com/antor44/microcontrollers/blob/main/Receiver_Module/acquisition.jpg)
 
 Components list:
+
 1 Arduino UNO/Mega
+
 1 Prototype board or a shield with mini-prototype board
+
 1 Remote control
+
 1 IR Receiver Module
+
 1 DHT11 Temperature and Humidity Sensor Module
+
 1 Active Buzzer
-2 Red and Green LEDs
+
+1 Red and 1 Green LED
+
 1 Photoresistor
+
 1 10 Kohm or 1 Kohm resistor
+
 2 220 ohm resistors
+
 Male-Male and Male-Female color-coded prototyping wires (22 AWG)
+
 USB-A Male to USB-B Male cable
