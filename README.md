@@ -28,7 +28,7 @@ Components list:
 
 1 IR Receiver Module
 
-1 Pasive Buzzer
+1 Passive Buzzer
 
 Male-Male and Male-Female color-coded prototyping wires (22 AWG)
 
