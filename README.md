@@ -67,13 +67,13 @@ Male-Male and Male-Female color-coded prototyping wires (22 AWG)
 USB-A Male to USB-B Male cable
 
 #
-
+![Screenshot](https://github.com/antor44/Acquisition4microcontrollers/blob/main/edge_impulse_create_impulse.jpg)
 ## Building an AI Application for Arduino and Nano 33 BLE Sense with Edge Impulse
 
-This article will guide you through developing an AI application using Arduino Nano 33 BLE Sense, leveraging the Edge Impulse online platform. We will focus on training a Machine Learning model, and deploying it back to the microcontroller for real-time inference.
+This article will guide you through developing an AI application using Arduino Uno/Mega/Nano and Nano 33 BLE Sense, leveraging the Edge Impulse online platform. We will focus on training a Machine Learning model, and deploying it back to the microcontroller for real-time inference. **The example scenario of an intelligent air conditioner control system serves primarily as a proof of concept, illustrating the process and potential of deploying AI on microcontrollers. This foundation can then be adapted for other practical applications and projects.**
 
 ### Introduction
-Edge Impulse is a powerful online platform for developing and deploying machine learning models on edge devices, including microcontrollers like Arduino Nano 33 BLE Sense. It simplifies the process of collecting sensor data, training models, and deploying them to resource-constrained devices. This allows developers to build intelligent applications for the Internet of Things (IoT) without extensive machine learning expertise.
+Edge Impulse is a powerful online platform for developing and deploying machine learning models on edge devices, including microcontrollers like Arduino Nano 33 BLE Sense, although ArduinoUNO/mega/Nano are not supported. It simplifies the process of collecting sensor data, training models, and deploying them to resource-constrained devices. This allows developers to build intelligent applications for the Internet of Things (IoT) without extensive machine learning expertise.
 
 ### Hardware and Software Requirements
 * Arduino Nano 33 BLE Sense
@@ -86,7 +86,7 @@ This article will focus on building a basic AI application using the Arduino Nan
 
 ### Data Collection and Preprocessing
 * **Sensor Data Acquisition:** Connect the necessary sensors to your Arduino Nano 33 BLE Sense. Utilize the Arduino IDE to collect data from these sensors. 
-* **Data Formatting:** Format the collected data into a suitable format for Edge Impulse. Ensure consistent timestamps for accurate analysis.
+* **Data Formatting:** Format the collected data into a suitable format for Edge Impulse.
 * **Dataset Upload:** Create a new project in Edge Impulse and upload the formatted sensor data.
 
 ### Model Training and Selection
@@ -96,18 +96,27 @@ This article will focus on building a basic AI application using the Arduino Nan
 * **Model Optimization (Optional):** Utilize the EON Tuner to automatically find optimal model configurations by testing various hyperparameters and settings.
 * **Model Performance Evaluation:** Evaluate the trained model's performance using Edge Impulse's testing tools. Analyze metrics like accuracy, precision, and recall to assess its effectiveness.
 
-### Model Deployment and Testing
-* **Deployment Package Generation:**  Generate a deployment package for your target Arduino device. Edge Impulse will compile and optimize the model for the chosen hardware.
-* **Code Integration:** Download the generated code and integrate it into your Arduino project within the Arduino IDE.
-* **Real-time Inference:** Upload the code to your Arduino and begin real-time inference. The AI model will now run on the microcontroller, making predictions based on live sensor data.
-* **Application Logic:** Implement the application logic based on the model's predictions. For example, in our temperature control system, turn the air conditioner on or off based on the predicted temperature and user preferences.
+### Model Deployment and Application
+Edge Impulse offers several ways to test and deploy your trained model:
 
-### Tips and Considerations
-* **Data Quality:** The quality of your dataset directly impacts the model's accuracy. Collect diverse and representative data to improve generalization capabilities.
-* **Resource Constraints:**  Be mindful of the microcontroller's limited resources. Choose lightweight models and algorithms that can run efficiently within the available memory and processing power.
-* **Model Optimization:** Optimize the trained model for size and speed to ensure optimal performance on the Arduino device. Edge Impulse provides tools to facilitate this process.
-* **Edge Case Handling:** Consider potential edge cases and implement appropriate error handling mechanisms in your application logic.
-* **Security (Optional):** If your application involves sensitive data, explore security measures like data encryption and secure communication protocols.
+* **Live Testing:** Test your model in real-time using a web browser, mobile device, or directly on the target hardware. Data from connected sensors can be streamed to Edge Impulse for live inference and visualization.
+* **Dataset Testing:** Evaluate the model's performance using the dedicated "Test" dataset within Edge Impulse. This provides detailed metrics and graphs to assess accuracy and identify potential issues.
+* **Deployment Packages:** Generate optimized deployment packages tailored for your specific hardware platform, such as Arduino boards.
+* **Code Export:** Download the model code for integration into your own projects. Edge Impulse supports various programming languages like C++ for Arduino and Python for platforms like Raspberry Pi.
+
+For microcontroller deployment, the Arduino IDE is used to upload the generated code, incorporating the trained model. For instance, in a Keyword Spotting application, the Arduino Nano 33 BLE Sense can be programmed to illuminate an LED based on detected voice commands. The LED could turn green when the activation word is recognized and remain red otherwise. Additionally, actions like controlling a relay to switch electrical appliances on or off can be implemented based on the model's output.
+
+**Applying the Model to the Air Conditioner Control System**
+
+While the intelligent air conditioner control system is a simplified example, it showcases how the model can be deployed for practical use.  The hardware setup used for data collection can be adapted for the final application. In this case, the infrared receiver used to gather user temperature preferences can be replaced with an infrared LED. This LED would send on/off commands to the air conditioner or heater based on the AI's predictions.
+
+However, this method has limitations. Determining if the infrared LED successfully transmitted the command to the appliance requires additional sensors or relying on classic programming logic.  For instance, the code could monitor the temperature trend and retry sending the command if the temperature doesn't adjust as expected.
+
+A more reliable approach is to use a relay to control the appliance's power supply directly. A relay suitable for 220V AC and compatible with the 3.3V output of the Arduino Nano 33 BLE Sense would be required. While this method ensures control over the appliance, it's a more "forceful" approach and might not be appropriate for all applications.
+
+**Alternative Control Methods:**
+
+Smart home devices offer alternative control solutions. Devices like Xiaomi's remote button can be controlled via microcontrollers, minicomputers, or even over the internet if they utilize compatible protocols. Integrating such devices can be achieved using platforms like Home Assistant, which supports a wide range of smart home ecosystems.
 
 ### Practical Considerations and Limitations
 While promising on paper, the performance of AI-based systems on resource-constrained devices should be carefully evaluated. Theoretical results may not always translate directly to real-world scenarios due to factors like sensor noise, environmental variations, and the limitations of simplified models.
@@ -117,4 +126,5 @@ In the case of our air conditioner control system, the accuracy and generalizabi
 Classical Machine Learning algorithms, such as regression models, might be more suitable for resource-constrained devices like the Arduino UNO. These algorithms generally require less processing power and memory compared to neural networks. While examples of running basic neural networks on Arduino UNO exist, the limited 2 KB RAM and 1 KB ROM necessitate careful model design and potentially external memory solutions like microSD cards.
 
 ### Conclusion
-Developing AI applications for microcontrollers like Arduino is becoming increasingly accessible with platforms like Edge Impulse. By following the steps outlined in this article, you can leverage the power of machine learning to build intelligent and responsive IoT applications without extensive machine learning expertise. Remember to experiment with different algorithms, model configurations, and sensor data to optimize your application's performance and achieve the desired functionality. When working with resource-constrained devices, carefully consider the trade-offs between model complexity, accuracy, and hardware limitations to select the most suitable approach for your application.
+Developing AI applications for microcontrollers like Arduino is becoming increasingly accessible with platforms like Edge Impulse. By following the steps outlined in this article, you can leverage the power of machine learning to build intelligent and responsive IoT applications without extensive machine learning expertise. Remember to experiment with different algorithms, model configurations, and sensor data to optimize your application's performance and achieve the desired functionality. When working with resource-constrained devices, carefully consider the trade-offs between model complexity, accuracy, and hardware limitations to select the most suitable approach for your application. 
+
