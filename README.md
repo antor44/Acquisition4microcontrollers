@@ -116,7 +116,7 @@ A more reliable approach is to use a relay to control the appliance's power supp
 
 **Alternative Control Methods:**
 
-Smart home devices offer alternative control solutions. Devices like Xiaomi's remote button can be controlled via microcontrollers, minicomputers, or even over the internet if they utilize compatible protocols. Integrating such devices can be achieved using platforms like Home Assistant, which supports a wide range of smart home ecosystems.
+Smart home devices offer alternative control solutions. Devices like Xiaomi's Fingerbot can be controlled via microcontrollers, minicomputers, or even over the internet if they utilize compatible protocols. Integrating such devices can be achieved using platforms like Home Assistant, which supports a wide range of smart home ecosystems.
 
 ### Practical Considerations and Limitations
 While promising on paper, the performance of AI-based systems on resource-constrained devices should be carefully evaluated. Theoretical results may not always translate directly to real-world scenarios due to factors like sensor noise, environmental variations, and the limitations of simplified models.
