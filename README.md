@@ -94,7 +94,7 @@ This article will focus on building a basic AI application using the Arduino Nan
 * **Algorithm Selection:** Edge Impulse offers various algorithms, including Neural Networks, Convolutional Neural Networks (CNNs), and classical Machine Learning algorithms. For numerical data, like our temperature control scenario, Regression or Classification algorithms are suitable.
 * **Model Training:** Train the selected model using the uploaded dataset. Edge Impulse provides options for customizing network architecture, hyperparameters, and training epochs.
 * **Model Optimization (Optional):** Utilize the EON Tuner to automatically find optimal model configurations by testing various hyperparameters and settings.
-* **Model Performance Evaluation:** Evaluate the trained model's performance using Edge Impulse's testing tools. Analyze metrics like accuracy, precision, and recall to assess its effectiveness.
+* **Model Performance Evaluation:** Evaluate the trained model's performance using Edge Impulse's testing tools. Analyze metrics like accuracy, precision and recall to assess its effectiveness.
 
 ### Model Deployment and Application
 Edge Impulse offers several ways to test and deploy your trained model:
