@@ -1,130 +1,208 @@
-# Data acquisition for Arduino UNO and Nano BLE 33 Sense
+# 🤖 TinyML Data Acquisition & Edge Impulse Tutorial
+### *Arduino UNO & Arduino Nano 33 BLE Sense*
 
+![Arduino](https://img.shields.io/badge/Hardware-Arduino_UNO_%7C_Nano_33_BLE_Sense-00979D?style=for-the-badge&logo=arduino&logoColor=white)
+![Edge Impulse](https://img.shields.io/badge/Platform-Edge_Impulse-FF5722?style=for-the-badge)
+![TinyML](https://img.shields.io/badge/Field-TinyML_%26_IoT-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Proof_of_Concept_%2F_Tutorial-yellow?style=for-the-badge)
 
-These codes are used to acquire data for a machine learning application that controls the temperature. The acquisition mode change is manually controlled with an infrared remote control using a *new universal protocol.
+> [!IMPORTANT]
+> **Project Scope & Engineering Retrospective (Proof of Concept):**  
+> This repository was created as an **educational tutorial and technical proof of concept (PoC)** to explore sensor data acquisition, custom interrupt-driven IR triggers, and the end-to-end **Edge Impulse** TinyML workflow.  
+> *Note on the HVAC/Temperature ML Model:* Attempting to predict human thermal comfort using solely ambient room sensors (temperature, humidity, light) does not yield an accurate or generalizable model in real-world scenarios, as thermal comfort is highly subjective and requires **personalized/biometric sensors** (e.g., skin temperature, heart rate, wearable data) alongside wider environmental context. Therefore, treat the smart AC scenario purely as a **template pipeline** for deploying AI on microcontrollers.
 
+---
 
-*Although the new protocol for infrared remotes doesn't have much to do with the main objective of this code, which is data acquisition for a Machine Learning model to control the temperature of a room or space, Arduino Nano BLE 33 Sense code includes all the low-level instructions to analyze frames of infrared remotes compatible with the NEC protocol, based on an example of IRMP by Frank Meyer: https://github.com/ukw100/IRMP/ . I've removed unnecessary parts and modified it to support any remote control, whether to use it as a remote control to transmit power on/off changes to the Arduino circuit or to discard incorrect codes received from other remote controls. To accomplish this, I have also programmed a new, arbitrary infrared protocol or code that can discard false positives or key presses received from other remote controls. The code is adapted to the codes of my IR remote controls (TV and AC), which makes it very simple as the circuit receives any remote control press to switch between on and off, canceling key codes that match the remote controls of my other devices. To identify these codes for false positives of keys from other remote controls different from mine, you can add an instruction such as 'Serial.println(key_s)' at the beginning of the translateIR() function.
+## 📑 Table of Contents
+1. [Overview & Custom Universal IR Trigger](#-overview--custom-universal-ir-trigger)
+   - [How the Heuristic IR Protocol Works](#how-the-heuristic-ir-protocol-works)
+   - [Technical Implementation & IR Limitations](#-technical-implementation--ir-limitations)
+2. [Hardware Setup & Schematics](#-hardware-setup--schematics)
+   - [Arduino Nano 33 BLE Sense](#1-arduino-nano-33-ble-sense-setup)
+   - [Arduino UNO / Mega](#2-arduino-uno--mega-setup)
+3. [TinyML Tutorial: Building an AI App with Edge Impulse](#-tinyml-tutorial-building-an-ai-app-with-edge-impulse)
+   - [System Architecture & Pipeline](#system-architecture--pipeline)
+   - [Step-by-Step Workflow](#step-by-step-workflow)
+   - [Real-World Actuation Strategies](#real-world-actuation-strategies)
+   - [Hardware Limitations & Comparisons](#hardware-limitations--comparisons)
+4. [Conclusion](#-conclusion)
 
-![Screenshot](https://github.com/antor44/Acquisition4microcontrollers/blob/main/NEC_protocol.jpg)
+---
 
-For the part of the code sent by the infrared remotes, only an intermediate part of the frame is read with the intention of making it more compatible or universal, as some remotes I have send shorter frames or use different protocols than NEC. It may be that they are so different that this programming code reads their frames by chance. In practice, key presses from remotes of a large number of brands or other protocols may be recognized, as long as they are of the most common 38 KHz frequency model, specifically called Pulse Width Modulation (PWM), although then to send the zero or the one it will not simply be to send or not pulses at 38 KHz. But I have chosen an intermediate part of the IR frames without knowing exactly which one, so this may be the reason why I ended up with too many coincidences with the remote control of my TV, false positives, coincidental keys that need to be discarded if they are pressed with the "switch...case" instruction of the translateIR() function, to avoid changing the state of the data collection of the code with false positives, for example when changing TV channels. I do not know if the "invented" codes do not capture the most differentiating bits of the infrared frame sent by different types of remotes from other devices. I have not studied the NEC protocol or any other, but rather have been programming it based on trial and error, and I do not have time to go further. If there are other parts of the frames that are more differentiable, they can be tested by modifying the maximum and minimum values of the range [the two conditional instructions with the "> than" (greater than)] in the variable ISREdgeCounter inside the ISR measureTimingISR() function and perhaps also, if the lower value (39 by default) is modified, the value 40 in the line "key = key + pow(2,(ISREdgeCounter-40))". In other words, one can try modifying the three instructions that contain the ISREdgeCounter variable, which the IRMP library programmer uses to count the pulses of the infrared chip/receiver that the microcontroller receives through one of the digital input ports. This part of the programming code would only be valid in others to receive key codes in certain programming codes, such as one to use controllers of other devices without knowing them, no matter the protocol as long as their frames are detected by chance, or to discard false positives from other controllers as in this specific case.
+## 📡 Overview & Custom Universal IR Trigger
 
-This part of the programming code and the invented IR codes would not be valid for transmitting via infrared, since the electronic or electrical device always requires complete valid frames of a specific IR protocol with the exact key codes used by the manufacturer at that time. For this, libraries have tables of supported protocols, and codes are extracted by copying them from a working remote with a separate programming code. While there are online databases with codes for all existing remotes, which are used by some applications such as those included in some mobile phones with infrared ports, so that users only have to choose the brand and model of the remote control they want to emulate. I do not know why it is not used in programming codes for microcontrollers; it may be due to patent issues, since it is absurd to have to use a functional remote control in a specific program of the microcontroller in order to copy its operation in another application of the user's microcontroller, when for example the user may want to copy a broken remote or one that has disappeared from the market. This code does NOT solve this specific problem.
+The code in this repository acquires environmental data for Machine Learning applications while allowing the user to manually toggle the **data acquisition mode (ON/OFF)**—or label user comfort states—using **any standard infrared (IR) remote control**.
 
- 
-## Data acquisition for Arduino Nano BLE 33 Sense:
-![Screenshot](https://github.com/antor44/microcontrollers/blob/main/Receiver_Sense/Arduino_sense_receiver.jpg)
-#
-![Screenshot](https://github.com/antor44/microcontrollers/blob/main/Receiver_Sense/Arduino_nano_sense_placa.jpg)
+### How the Heuristic IR Protocol Works
+Although the primary goal of this project is TinyML data collection, the **Arduino Nano 33 BLE Sense** sketch includes low-level, interrupt-driven instructions to analyze infrared frames based on the NEC protocol (adapted from [Frank Meyer's IRMP library](https://github.com/ukw100/IRMP/)). 
 
-Components list:
+Instead of decoding full manufacturer-specific frames, this implementation strips away unnecessary parts and reads an **intermediate slice of the 38 kHz PWM frame**. This creates an arbitrary, "universal" protocol capable of reacting to almost any household remote control while actively filtering out false positives (such as accidental triggers when changing TV channels or adjusting the AC).
 
-1 Arduino Nano 33 BLE Sense
+```mermaid
+flowchart LR
+    A[📡 Any 38kHz IR Remote] -->|PWM Pulses| B(IR Receiver Module)
+    B -->|Hardware Interrupt| C{measureTimingISR}
+    C -->|Slice Intermediate Bits<br/>ISREdgeCounter > 39| D[Generate Arbitrary Key]
+    D --> E{translateIR Filter}
+    E -->|Matches Known TV/AC Keys| F[🚫 Discard False Positive]
+    E -->|Unfiltered Key Press| G[✅ Toggle Data Acquisition]
+```
 
-1 Breadboard
+![NEC Protocol Frame](https://github.com/antor44/Acquisition4microcontrollers/blob/main/NEC_protocol.jpg)
 
-1 Remote control
+### 🔍 Technical Implementation & IR Limitations
 
-1 IR Receiver Module
+* **Universal 38 kHz Reception & False-Positive Filtering (`translateIR()`):** Because only an intermediate part of the IR frame is read—chosen via trial and error to maximize compatibility across remotes sending shorter frames or non-NEC protocols—remotes from different brands are recognized as long as they use standard **38 kHz Pulse Width Modulation (PWM)**. However, sampling an arbitrary slice without targeting the most differentiating bits can produce coincidences (false positives) with other household remotes (e.g., TV or AC). Those coincidental key codes are discarded inside the `switch...case` block of the `translateIR()` function so that changing TV channels does not accidentally toggle data collection.
+* **Calibrating for Your Own Remotes:** To identify and block false positives from remotes different from mine, simply add `Serial.println(key_s);` at the beginning of the `translateIR()` function to inspect the received codes.
+* **Adjusting the Bit Range (`measureTimingISR()`):** If you want to test other parts of the IR frame that might be more differentiable, you can modify the maximum and minimum range values (the two conditional instructions using `>`) on the `ISREdgeCounter` variable inside the `measureTimingISR()` interrupt service routine. If you modify the lower bound (`39` by default), you should also adjust the value `40` in the bit-shifting calculation:
+  ```cpp
+  key = key + pow(2, (ISREdgeCounter - 40));
+  ```
+  In short, you can experiment with the three instructions containing `ISREdgeCounter`, which counts the pulses received from the IR sensor on the digital input pin.
+* **Why This Code Cannot Be Used for IR Transmission:** These arbitrary IR codes are only valid for **receiving** trigger signals or filtering false positives. They cannot be used to transmit commands to an appliance, because commercial electronics require complete, valid frames of a specific IR protocol with exact manufacturer key codes. Standard microcontroller libraries rely on protocol lookup tables and require physically copying codes from a working remote first (unlike mobile phone IR apps that pull from online databases—likely absent in MCU libraries due to patent or licensing issues). **This code does not solve the problem of emulating broken or missing remotes.**
 
-1 Passive Buzzer
+---
 
-Male-Male and Male-Female color-coded prototyping wires (22 AWG)
+## 🛠️ Hardware Setup & Schematics
 
-USB-A Male to Micro USB Male cable
+### 1. Arduino Nano 33 BLE Sense Setup
+Equipped with built-in environmental sensors, the Nano 33 BLE Sense only requires an external IR receiver and a buzzer for audio feedback during data logging.
 
-#
-## Data acquisition for Arduino UNO:
-![Screenshot](https://github.com/antor44/microcontrollers/blob/main/Receiver_Module/Arduino_Acquisition.jpg)
-#
-![Screenshot](https://github.com/antor44/microcontrollers/blob/main/Receiver_Module/acquisition.jpg)
+| Breadboard Schematic | Hardware Prototype |
+| :---: | :---: |
+| ![Nano BLE Schematic](https://github.com/antor44/microcontrollers/blob/main/Receiver_Sense/Arduino_sense_receiver.jpg) | ![Nano BLE Board](https://github.com/antor44/microcontrollers/blob/main/Receiver_Sense/Arduino_nano_sense_placa.jpg) |
 
-Components list:
+**Components List:**
+- [x] **1x** Arduino Nano 33 BLE Sense
+- [x] **1x** Breadboard & 22 AWG Male-Male / Male-Female jumper wires
+- [x] **1x** 38 kHz IR Receiver Module + **1x** Remote Control
+- [x] **1x** Passive Buzzer
+- [x] **1x** USB-A Male to Micro-USB Male cable
 
-1 Arduino UNO/Mega
+---
 
-1 Breadboard or a shield with mini-Breadboard
+### 2. Arduino UNO / Mega Setup
+Since the classic Arduino UNO lacks onboard environmental sensors, external modules (DHT11, photoresistor, status LEDs) are wired to collect ambient metrics.
 
-1 Remote control
+| Breadboard Schematic | Hardware Prototype |
+| :---: | :---: |
+| ![Arduino UNO Schematic](https://github.com/antor44/microcontrollers/blob/main/Receiver_Module/Arduino_Acquisition.jpg) | ![Arduino UNO Prototype](https://github.com/antor44/microcontrollers/blob/main/Receiver_Module/acquisition.jpg) |
 
-1 IR Receiver Module
+**Components List:**
+- [x] **1x** Arduino UNO or Mega
+- [x] **1x** Breadboard (or a shield with mini-breadboard)
+- [x] **1x** 38 kHz IR Receiver Module + **1x** Remote Control
+- [x] **1x** DHT11 Temperature & Humidity Sensor Module
+- [x] **1x** Photoresistor + **1x** 10 kΩ (or 1 kΩ) resistor
+- [x] **1x** Active Buzzer
+- [x] **1x** Red LED & **1x** Green LED + **2x** 220 Ω resistors
+- [x] **1x** USB-A Male to USB-B Male cable & 22 AWG jumper wires
 
-1 DHT11 Temperature and Humidity Sensor Module
+---
 
-1 Active Buzzer
+## 🧠 TinyML Tutorial: Building an AI App with Edge Impulse
 
-1 Red and 1 Green LED
+![Edge Impulse Create Impulse](https://github.com/antor44/Acquisition4microcontrollers/blob/main/edge_impulse_create_impulse.jpg)
 
-1 Photoresistor
+**Edge Impulse** is a powerful online platform for developing and deploying Machine Learning models on edge devices, including microcontrollers like the **Arduino Nano 33 BLE Sense** (note that 8-bit boards like the **Arduino UNO/Mega/Nano** are not officially supported). It simplifies data collection, model training, and deployment for IoT applications without requiring deep ML expertise.
 
-1 10 Kohm or 1 Kohm resistor
+---
 
-2 220 ohm resistors
+### System Architecture & Pipeline
 
-Male-Male and Male-Female color-coded prototyping wires (22 AWG)
+The diagram below illustrates the complete workflow from raw sensor acquisition to real-time inference on the microcontroller:
 
-USB-A Male to USB-B Male cable
+```mermaid
+flowchart TD
+    subgraph 1_Data_Acquisition ["1️⃣ Edge Data Collection"]
+        S[🌡️ Ambient Sensors<br/>Temp, Humidity, Light] --> MCU1[Arduino / Nano 33 BLE]
+        IR[📱 IR Remote Trigger] -->|Toggle & Label State| MCU1
+    end
 
-#
-![Screenshot](https://github.com/antor44/Acquisition4microcontrollers/blob/main/edge_impulse_create_impulse.jpg)
-## Building an AI Application for Arduino and Nano 33 BLE Sense with Edge Impulse
+    subgraph 2_Cloud_Training ["2️⃣ Edge Impulse Studio (Cloud)"]
+        MCU1 -->|Serial / CSV Upload| EI_D[📊 Dataset & Formatting]
+        EI_D --> EI_I[⚙️ Create Impulse<br/>Preprocessing + Model Block]
+        EI_I --> EI_T[🧠 Model Training<br/>NN / CNN / Classical ML]
+        EI_T --> EI_O[🚀 EON Tuner<br/>Hyperparameter Optimization]
+    end
 
-This article will guide you through developing an AI application using Arduino Uno/Mega/Nano and Nano 33 BLE Sense, leveraging the Edge Impulse online platform. We will focus on training a Machine Learning model, and deploying it back to the microcontroller for real-time inference. **The example scenario of an intelligent air conditioner control system serves primarily as a proof of concept, illustrating the process and potential of deploying AI on microcontrollers. This foundation can then be adapted for other practical applications and projects.**
+    subgraph 3_Deployment ["3️⃣ Edge Deployment & Actuation"]
+        EI_O -->|Export C++ Library| MCU2[🤖 Nano 33 BLE Sense<br/>Real-Time Inference]
+        MCU2 -->|Method A| ACT1[🔦 IR LED Emitter]
+        MCU2 -->|Method B| ACT2[⚡ 220V AC Relay]
+        MCU2 -->|Method C| ACT3[🏠 Smart Home / Fingerbot]
+    end
+```
 
-### Introduction
-Edge Impulse is a powerful online platform for developing and deploying machine learning models on edge devices, including microcontrollers like Arduino Nano 33 BLE Sense, although ArduinoUNO/mega/Nano are not supported. It simplifies the process of collecting sensor data, training models, and deploying them to resource-constrained devices. This allows developers to build intelligent applications for the Internet of Things (IoT) without extensive machine learning expertise.
+---
 
-### Hardware and Software Requirements
-* Arduino Nano 33 BLE Sense
-* Computer with internet access
-* Edge Impulse account (free tier available)
-* Arduino IDE
+### Step-by-Step Workflow
 
-### Project Overview
-This article will focus on building a basic AI application using the Arduino Nano 33 BLE Sense and Edge Impulse. The example scenario will be an intelligent air conditioner control system.  However, the principles and steps outlined can be easily adapted for other applications and sensors. 
+#### 1️⃣ Hardware & Software Requirements
+* **Hardware:** Arduino Nano 33 BLE Sense & USB cable.
+* **Software:** [Arduino IDE](https://www.arduino.cc/en/software) & an [Edge Impulse Account](https://edgeimpulse.com/) (Free tier available, with algorithm restrictions noted below).
 
-### Data Collection and Preprocessing
-* **Sensor Data Acquisition:** Connect the necessary sensors to your Arduino Nano 33 BLE Sense. Utilize the Arduino IDE to collect data from these sensors. 
-* **Data Formatting:** Format the collected data into a suitable format for Edge Impulse.
-* **Dataset Upload:** Create a new project in Edge Impulse and upload the formatted sensor data.
+#### 2️⃣ Data Collection & Preprocessing
+1. **Sensor Data Acquisition:** Connect the sensors to your Arduino and use the Arduino IDE to collect environmental readings.
+2. **Data Formatting:** Format the acquired telemetry into a structure compatible with Edge Impulse (`.csv` or `.json`).
+3. **Dataset Upload:** Create a new project in Edge Impulse and upload your formatted dataset.
 
-### Model Training and Selection
-* **Impulse Creation:** Define the structure of your AI pipeline within Edge Impulse's "Create Impulse" section. This involves selecting appropriate data preprocessing blocks and choosing a suitable learning algorithm.
-* **Algorithm Selection:** Edge Impulse offers various algorithms, including Neural Networks, Convolutional Neural Networks (CNNs), and classical Machine Learning algorithms. For numerical data, like our temperature control scenario, Regression or Classification algorithms are suitable.
-* **Model Training:** Train the selected model using the uploaded dataset. Edge Impulse provides options for customizing network architecture, hyperparameters, and training epochs.
-* **Model Optimization (Optional):** Utilize the EON Tuner to automatically find optimal model configurations by testing various hyperparameters and settings.
-* **Model Performance Evaluation:** Evaluate the trained model's performance using Edge Impulse's testing tools. Analyze metrics like accuracy, precision and recall to assess its effectiveness.
+#### 3️⃣ Impulse Creation, Algorithm Selection & Training
+Inside the **"Create Impulse"** section, you define your AI pipeline by selecting preprocessing blocks and a learning algorithm:
+* **Neural Networks (NNs) & Convolutional Neural Networks (CNNs):** These deep learning architectures excel at **modeling complex, non-linear relationships** and automatically extracting high-level features where simple linear functions fall short (making them ideal for complex pattern recognition, audio, or computer vision). However, they also introduce higher structural and computational complexity.
+* **Classical Machine Learning & Regression Models:** For simpler numerical or tabular data—such as our temperature control scenario—Regression or Classical Classification algorithms are often the most direct and lightweight choice.
+* **Model Training & EON™ Tuner:** Train the selected model by customizing network architecture, epochs, and hyperparameters, or use the **EON Tuner** to automatically search for the optimal model configuration. Finally, evaluate accuracy, precision, and recall in the testing tab.
 
-### Model Deployment and Application
-Edge Impulse offers several ways to test and deploy your trained model:
+> [!NOTE]
+> **💰 Paywall Notice on Classical ML Algorithms in Edge Impulse:**  
+> While Edge Impulse provides Neural Network blocks (Keras-based Classification, Regression, and CNNs) on its free tier, its dedicated **Classical Machine Learning blocks** (scikit-learn based classical regression and classification models) are **restricted to paid Enterprise plans** (limiting free users from deploying them). Ironically, these paid classical algorithms are often the most convenient, interpretable, and resource-efficient models for simple numerical sensor data and constrained microcontrollers.
 
-* **Live Testing:** Test your model in real-time using a web browser, mobile device, or directly on the target hardware. Data from connected sensors can be streamed to Edge Impulse for live inference and visualization.
-* **Dataset Testing:** Evaluate the model's performance using the dedicated "Test" dataset within Edge Impulse. This provides detailed metrics and graphs to assess accuracy and identify potential issues.
-* **Deployment Packages:** Generate optimized deployment packages tailored for your specific hardware platform, such as Arduino boards.
-* **Code Export:** Download the model code for integration into your own projects. Edge Impulse supports various programming languages like C++ for Arduino and Python for platforms like Raspberry Pi.
+#### 4️⃣ Model Deployment & Application
+Edge Impulse provides several ways to validate and deploy your trained model:
+* **Live & Dataset Testing:** Stream real-time sensor data from your connected hardware to the browser for live inference, or run batch evaluations against your dedicated "Test" dataset.
+* **Deployment Packages & Code Export:** Generate optimized C++ libraries for Arduino (or Python packages for Raspberry Pi). Using the Arduino IDE, you can upload the exported inference code directly to the **Arduino Nano 33 BLE Sense**—for example, lighting a green/red LED in a Keyword Spotting task, or triggering an appliance based on temperature predictions.
 
-For microcontroller deployment, the Arduino IDE is used to upload the generated code, incorporating the trained model. For instance, in a Keyword Spotting application, the Arduino Nano 33 BLE Sense can be programmed to illuminate an LED based on detected voice commands. The LED could turn green when the activation word is recognized and remain red otherwise. Additionally, actions like controlling a relay to switch electrical appliances on or off can be implemented based on the model's output.
+---
 
-**Applying the Model to the Air Conditioner Control System**
+### Real-World Actuation Strategies
 
-While the intelligent air conditioner control system is a simplified example, it showcases how the model can be deployed for practical use.  The hardware setup used for data collection can be adapted for the final application. In this case, the infrared receiver used to gather user temperature preferences can be replaced with an infrared LED. This LED would send on/off commands to the air conditioner or heater based on the AI's predictions.
+While the intelligent air conditioner control system is a simplified proof of concept, the data collection hardware can be adapted for physical actuation in three ways:
 
-However, this method has limitations. Determining if the infrared LED successfully transmitted the command to the appliance requires additional sensors or relying on classic programming logic.  For instance, the code could monitor the temperature trend and retry sending the command if the temperature doesn't adjust as expected.
+| Actuation Method | How It Works | Pros ✅ | Cons ❌ |
+| :--- | :--- | :--- | :--- |
+| **1. Infrared (IR) LED** | Replaces the IR receiver with an IR LED to send ON/OFF commands to the AC or heater. | • Non-invasive<br>• Safe low-voltage circuit | • **No state feedback:** Cannot confirm if the appliance received the command without extra sensors or classic fallback logic (e.g., monitoring temperature trends and retrying). |
+| **2. High-Voltage Relay** | Uses a 220V AC relay (compatible with the Nano's 3.3V output) to switch the appliance's main power supply directly. | • Guarantees power control<br>• Bypasses IR protocol issues | • **Risk of Appliance Damage:** Cutting main power is a "forceful" approach. Even if nothing happens immediately, repeated hard power cuts can **cause long-term wear and damage** to the appliance or trigger a **severe sudden failure**. |
+| **3. Smart Home / IoT Bots** | Uses smart mechanical actuators (e.g., *Xiaomi Fingerbot*) or integrates with platforms like **Home Assistant**. | • Non-destructive & safe<br>• Wide ecosystem support | • Higher cost & setup complexity<br>• Requires compatible wireless protocols or hubs. |
 
-A more reliable approach is to use a relay to control the appliance's power supply directly. A relay suitable for 220V AC and compatible with the 3.3V output of the Arduino Nano 33 BLE Sense would be required. While this method ensures control over the appliance, it's a more "forceful" approach and might not be appropriate for all applications.
+---
 
-**Alternative Control Methods:**
+### Hardware Limitations & Comparisons
 
-Smart home devices offer alternative control solutions. Devices like Xiaomi's Fingerbot can be controlled via microcontrollers, minicomputers, or even over the internet if they utilize compatible protocols. Integrating such devices can be achieved using platforms like Home Assistant, which supports a wide range of smart home ecosystems.
+> [!WARNING]
+> **Theoretical Metrics vs. Real-World Deployment:**  
+> Promising training metrics do not always translate directly to real-world performance due to sensor noise, environmental variations, and uncaptured variables (such as personalized biometric data in human thermal comfort).
 
-### Practical Considerations and Limitations
-While promising on paper, the performance of AI-based systems on resource-constrained devices should be carefully evaluated. Theoretical results may not always translate directly to real-world scenarios due to factors like sensor noise, environmental variations, and the limitations of simplified models.
+When targeting microcontrollers, you must carefully weigh model complexity against hardware memory boundaries:
 
-In the case of our air conditioner control system, the accuracy and generalizability of the model might be limited by factors not captured in the training data. While Edge Impulse indicated efficient resource utilization on the Arduino Nano 33 BLE Sense, even with more complex neural network architectures, deploying similar algorithms on less powerful boards like the Arduino UNO presents further challenges.
+* **Classical ML Algorithms (Compact & Ideal for 8-bit MCUs):** Classical Machine Learning algorithms, such as **regression models**, require significantly less processing power and memory than neural networks. Because these models are naturally compact, they are much better suited for resource-constrained boards like the **Arduino UNO** without needing external storage—even.
+* **Neural Networks (NNs / CNNs) on Constrained Devices:** While Edge Impulse demonstrates efficient resource utilization on the **Arduino Nano 33 BLE Sense** (even with complex neural networks and CNNs), deploying neural networks on an **Arduino UNO** is severely limited by its **2 KB RAM** and **1 KB ROM (EEPROM)**. While examples of running Neural Networks on an Arduino UNO exist, the networks that developers have managed to fit natively are **extremely simplistic and rudimentary**; any larger neural network architecture requires careful design and external memory solutions such as **microSD cards**.
 
-Classical Machine Learning algorithms, such as regression models, might be more suitable for resource-constrained devices like the Arduino UNO. These algorithms generally require less processing power and memory compared to neural networks. While examples of running basic neural networks on Arduino UNO exist, the limited 2 KB RAM and 1 KB ROM necessitate careful model design and potentially external memory solutions like microSD cards.
+| Feature / Specification | 🚀 Arduino Nano 33 BLE Sense | 🐢 Arduino UNO (ATmega328P) |
+| :--- | :--- | :--- |
+| **Microcontroller** | nRF52840 (32-bit ARM Cortex-M4 @ 64 MHz) | ATmega328P (8-bit AVR @ 16 MHz) |
+| **Memory Limits** | **256 KB RAM** / **1 MB Flash** | **2 KB RAM** / **32 KB Flash** / **1 KB ROM (EEPROM)** |
+| **Edge Impulse Support** | ✅ Full Official Support | ❌ Not Supported Natively |
+| **Classical ML (e.g., Regression)** | ✅ Effortless *(Paid Enterprise feature in Edge Impulse)* | ✅ **Most suitable approach** — lightweight models fit without external memory |
+| **Neural Networks (NNs / CNNs)** | ✅ Handles complex non-linear NNs & CNNs easily | ⚠️ Only **very rudimentary/simplistic NNs** fit natively; larger models require external **microSD cards** |
 
-### Conclusion
-Developing AI applications for microcontrollers like Arduino is becoming increasingly accessible with platforms like Edge Impulse. By following the steps outlined in this article, you can leverage the power of machine learning to build intelligent and responsive IoT applications without extensive machine learning expertise. Remember to experiment with different algorithms, model configurations, and sensor data to optimize your application's performance and achieve the desired functionality. When working with resource-constrained devices, carefully consider the trade-offs between model complexity, accuracy, and hardware limitations to select the most suitable approach for your application. 
+---
+
+## 🎯 Conclusion
+
+Developing AI applications for microcontrollers like Arduino is becoming increasingly accessible with platforms like **Edge Impulse**. By following the steps outlined in this guide, you can experiment with different algorithms, sensor configurations, and deployment strategies to build responsive IoT prototypes. 
+
+When working with resource-constrained devices, always consider the trade-offs between **non-linear model complexity (NNs/CNNs) vs. lightweight classical algorithms (Regression), platform licensing costs, real-world sensor limitations, and hardware memory constraints** to select the most effective approach for your application.
+
+---
+*Created by [@antor44](https://github.com/antor44) — Feel free to fork, experiment, and adapt this pipeline for your own TinyML projects!*
 
