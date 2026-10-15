@@ -39,13 +39,14 @@ Although the primary goal of this project is TinyML data collection, the **Ardui
 Instead of decoding full manufacturer-specific frames, this implementation strips away unnecessary parts and reads an **intermediate slice of the 38 kHz PWM frame**. This creates an arbitrary, "universal" protocol capable of reacting to almost any household remote control while actively filtering out false positives (such as accidental triggers when changing TV channels or adjusting the AC).
 
 ```mermaid
+%%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false, "padding": 30, "nodeSpacing": 40, "rankSpacing": 40}}}%%
 flowchart TD
-    A(["⠀📡 38 kHz IR Remote⠀⠀⠀"]) -->|PWM Pulses| B["⠀📟 IR Receiver Module⠀⠀⠀"]
-    B -->|Interrupt| C["⠀⚡ measureTimingISR()⠀⠀⠀"]
-    C -->|Bits > 39| D["⠀✂️ Generate Arbitrary Key⠀⠀⠀"]
-    D --> E{"⠀🛡️ translateIR() Filter⠀⠀⠀"}
-    E -->|TV or AC Key| F(["⠀🚫 Discard False Positive⠀⠀⠀"])
-    E -->|Valid Key| G(["⠀✅ Toggle Data Acquisition⠀⠀⠀"])
+    A(["📡 38 kHz IR Remote"]) -->|PWM Pulses| B["📟 IR Receiver Module"]
+    B -->|Interrupt| C["⚡ measureTimingISR()"]
+    C -->|Bits > 39| D["✂️ Generate Arbitrary Key"]
+    D --> E{"🛡️ translateIR() Filter"}
+    E -->|TV or AC Key| F(["🚫 Discard False Positive"])
+    E -->|Valid Key| G(["✅ Toggle Data Acquisition"])
 
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
     classDef process fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c;
@@ -125,24 +126,25 @@ Since the classic Arduino UNO lacks onboard environmental sensors, external modu
 The diagram below illustrates the complete workflow from raw sensor acquisition to real-time inference on the microcontroller:
 
 ```mermaid
+%%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false, "padding": 30, "nodeSpacing": 35, "rankSpacing": 40}}}%%
 flowchart TD
-    subgraph Phase1 ["⠀1️⃣ Edge Data Collection⠀⠀⠀"]
-        S(["⠀🌡️ Ambient Sensors⠀⠀⠀"]) --> MCU1["⠀🎛️ Arduino / Nano 33 BLE⠀⠀⠀"]
-        IR(["⠀📱 IR Remote Trigger⠀⠀⠀"]) -->|Toggle State| MCU1
+    subgraph Phase1 ["1. Edge Data Collection"]
+        S(["🌡️ Ambient Sensors"]) --> MCU1["🎛️ Arduino / Nano 33 BLE"]
+        IR(["📱 IR Remote Trigger"]) -->|Toggle State| MCU1
     end
 
-    subgraph Phase2 ["⠀2️⃣ Edge Impulse Studio⠀⠀⠀"]
-        MCU1 -->|Upload CSV| EI_D["⠀📊 Dataset Formatting⠀⠀⠀"]
-        EI_D --> EI_I["⠀⚙️ Create Impulse⠀⠀⠀"]
-        EI_I --> EI_T["⠀🧠 Train NN / CNN / Classical ML⠀⠀⠀"]
-        EI_T --> EI_O["⠀🚀 EON Tuner Optimization⠀⠀⠀"]
+    subgraph Phase2 ["2. Edge Impulse Studio"]
+        MCU1 -->|Upload CSV| EI_D["📊 Dataset Formatting"]
+        EI_D --> EI_I["⚙️ Create Impulse"]
+        EI_I --> EI_T["🧠 Train NN / CNN / Classical ML"]
+        EI_T --> EI_O["🚀 EON Tuner Optimization"]
     end
 
-    subgraph Phase3 ["⠀3️⃣ Edge Deployment & Actuation⠀⠀⠀"]
-        EI_O -->|Export C++ Lib| MCU2["⠀🤖 Nano 33 BLE Inference⠀⠀⠀"]
-        MCU2 --> ACT1(["⠀🔦 Option A: IR LED Emitter⠀⠀⠀"])
-        MCU2 --> ACT2(["⠀⚡ Option B: 220V AC Relay⠀⠀⠀"])
-        MCU2 --> ACT3(["⠀🏠 Option C: Smart Home Bot⠀⠀⠀"])
+    subgraph Phase3 ["3. Edge Deployment & Actuation"]
+        EI_O -->|Export C++ Lib| MCU2["🤖 Nano 33 BLE Inference"]
+        MCU2 --> ACT1(["🔦 Option A: IR LED Emitter"])
+        MCU2 --> ACT2(["⚡ Option B: 220V AC Relay"])
+        MCU2 --> ACT3(["🏠 Option C: Smart Home Bot"])
     end
 
     classDef edge fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#004d40;
