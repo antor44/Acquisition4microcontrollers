@@ -39,14 +39,14 @@ Although the primary goal of this project is TinyML data collection, the **Ardui
 Instead of decoding full manufacturer-specific frames, this implementation strips away unnecessary parts and reads an **intermediate slice of the 38 kHz PWM frame**. This creates an arbitrary, "universal" protocol capable of reacting to almost any household remote control while actively filtering out false positives (such as accidental triggers when changing TV channels or adjusting the AC).
 
 ```mermaid
-%%{init: {'flowchart': {'padding': 15, 'nodeSpacing': 35, 'rankSpacing': 35}}}%%
+%%{init: {'flowchart': {'htmlLabels': false, 'padding': 25, 'nodeSpacing': 35, 'rankSpacing': 35}}}%%
 flowchart TD
-    A["38 kHz IR Remote Control"] -->|PWM Pulses| B["IR Receiver Module"]
-    B -->|Hardware Interrupt| C["measureTimingISR()"]
-    C -->|Slice Frame Bits > 39| D["Generate Arbitrary Key"]
-    D --> E{"translateIR() Filter"}
-    E -->|Matches TV or AC Keys| F["Discard False Positive"]
-    E -->|Unfiltered Key Press| G["Toggle Data Acquisition"]
+    A["38 kHz IR Remote"] -->|PWM Pulses| B["IR Receiver"]
+    B -->|Interrupt| C["measureTimingISR"]
+    C -->|Bits > 39| D["Arbitrary Key"]
+    D --> E{"translateIR Filter"}
+    E -->|TV or AC Key| F["Discard Signal"]
+    E -->|Valid Key| G["Toggle Mode"]
 ```
 
 ![NEC Protocol Frame](https://github.com/antor44/Acquisition4microcontrollers/blob/main/NEC_protocol.jpg)
@@ -114,25 +114,25 @@ Since the classic Arduino UNO lacks onboard environmental sensors, external modu
 The diagram below illustrates the complete workflow from raw sensor acquisition to real-time inference on the microcontroller:
 
 ```mermaid
-%%{init: {'flowchart': {'padding': 16, 'nodeSpacing': 30, 'rankSpacing': 35}}}%%
+%%{init: {'flowchart': {'htmlLabels': false, 'padding': 25, 'nodeSpacing': 30, 'rankSpacing': 35}}}%%
 flowchart TD
-    subgraph Phase1 ["1. Edge Data Collection"]
-        S["Ambient Sensors"] --> MCU1["Arduino / Nano 33 BLE"]
-        IR["IR Remote Trigger"] -->|Toggle State| MCU1
+    subgraph Phase1 ["1. Data Collection"]
+        S["Ambient Sensors"] --> MCU1["Arduino Board"]
+        IR["IR Remote"] -->|Toggle| MCU1
     end
 
-    subgraph Phase2 ["2. Edge Impulse Studio"]
-        MCU1 -->|Upload CSV| EI_D["Dataset Formatting"]
+    subgraph Phase2 ["2. Edge Impulse"]
+        MCU1 -->|CSV Data| EI_D["Dataset Upload"]
         EI_D --> EI_I["Create Impulse"]
-        EI_I --> EI_T["Train NN / CNN / Classical ML"]
-        EI_T --> EI_O["EON Tuner Optimization"]
+        EI_I --> EI_T["Train Model"]
+        EI_T --> EI_O["EON Tuner"]
     end
 
-    subgraph Phase3 ["3. Edge Deployment"]
-        EI_O -->|Export C++ Lib| MCU2["Nano 33 BLE Inference"]
-        MCU2 --> ACT1["Method A: IR LED Emitter"]
-        MCU2 --> ACT2["Method B: 220V AC Relay"]
-        MCU2 --> ACT3["Method C: Smart Home Bot"]
+    subgraph Phase3 ["3. Deployment"]
+        EI_O -->|C++ Library| MCU2["Nano 33 BLE"]
+        MCU2 --> ACT1["A: IR Emitter"]
+        MCU2 --> ACT2["B: 220V Relay"]
+        MCU2 --> ACT3["C: Smart Home"]
     end
 ```
 
