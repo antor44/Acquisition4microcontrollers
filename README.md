@@ -39,7 +39,7 @@ Although the primary goal of this project is TinyML data collection, the **Ardui
 Instead of decoding full manufacturer-specific frames, this implementation strips away unnecessary parts and reads an **intermediate slice of the 38 kHz PWM frame**. This creates an arbitrary, "universal" protocol capable of reacting to almost any household remote control while actively filtering out false positives (such as accidental triggers when changing TV channels or adjusting the AC).
 
 ```mermaid
-%%{init: {'flowchart': {'htmlLabels': false, 'padding': 30, 'nodeSpacing': 35, 'rankSpacing': 35}}}%%
+%%{init: {'flowchart': {'htmlLabels': false, 'padding': 35, 'nodeSpacing': 40, 'rankSpacing': 40}}}%%
 flowchart TD
     A["38 kHz IR Remote"] -->|PWM Pulses| B["IR Receiver"]
     B -->|Interrupt| C["measureTimingISR"]
