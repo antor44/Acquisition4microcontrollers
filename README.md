@@ -39,13 +39,14 @@ Although the primary goal of this project is TinyML data collection, the **Ardui
 Instead of decoding full manufacturer-specific frames, this implementation strips away unnecessary parts and reads an **intermediate slice of the 38 kHz PWM frame**. This creates an arbitrary, "universal" protocol capable of reacting to almost any household remote control while actively filtering out false positives (such as accidental triggers when changing TV channels or adjusting the AC).
 
 ```mermaid
-flowchart LR
-    A[📡 Any 38kHz IR Remote] -->|PWM Pulses| B(IR Receiver Module)
-    B -->|Hardware Interrupt| C{measureTimingISR}
-    C -->|Slice Intermediate Bits<br/>ISREdgeCounter > 39| D[Generate Arbitrary Key]
-    D --> E{translateIR Filter}
-    E -->|Matches Known TV/AC Keys| F[🚫 Discard False Positive]
-    E -->|Unfiltered Key Press| G[✅ Toggle Data Acquisition]
+%%{init: {'flowchart': {'padding': 15, 'nodeSpacing': 35, 'rankSpacing': 35}}}%%
+flowchart TD
+    A["38 kHz IR Remote Control"] -->|PWM Pulses| B["IR Receiver Module"]
+    B -->|Hardware Interrupt| C["measureTimingISR()"]
+    C -->|Slice Frame Bits > 39| D["Generate Arbitrary Key"]
+    D --> E{"translateIR() Filter"}
+    E -->|Matches TV or AC Keys| F["Discard False Positive"]
+    E -->|Unfiltered Key Press| G["Toggle Data Acquisition"]
 ```
 
 ![NEC Protocol Frame](https://github.com/antor44/Acquisition4microcontrollers/blob/main/NEC_protocol.jpg)
@@ -113,24 +114,25 @@ Since the classic Arduino UNO lacks onboard environmental sensors, external modu
 The diagram below illustrates the complete workflow from raw sensor acquisition to real-time inference on the microcontroller:
 
 ```mermaid
+%%{init: {'flowchart': {'padding': 16, 'nodeSpacing': 30, 'rankSpacing': 35}}}%%
 flowchart TD
-    subgraph 1_Data_Acquisition ["1️⃣ Edge Data Collection"]
-        S[🌡️ Ambient Sensors<br/>Temp, Humidity, Light] --> MCU1[Arduino / Nano 33 BLE]
-        IR[📱 IR Remote Trigger] -->|Toggle & Label State| MCU1
+    subgraph Phase1 ["1. Edge Data Collection"]
+        S["Ambient Sensors"] --> MCU1["Arduino / Nano 33 BLE"]
+        IR["IR Remote Trigger"] -->|Toggle State| MCU1
     end
 
-    subgraph 2_Cloud_Training ["2️⃣ Edge Impulse Studio (Cloud)"]
-        MCU1 -->|Serial / CSV Upload| EI_D[📊 Dataset & Formatting]
-        EI_D --> EI_I[⚙️ Create Impulse<br/>Preprocessing + Model Block]
-        EI_I --> EI_T[🧠 Model Training<br/>NN / CNN / Classical ML]
-        EI_T --> EI_O[🚀 EON Tuner<br/>Hyperparameter Optimization]
+    subgraph Phase2 ["2. Edge Impulse Studio"]
+        MCU1 -->|Upload CSV| EI_D["Dataset Formatting"]
+        EI_D --> EI_I["Create Impulse"]
+        EI_I --> EI_T["Train NN / CNN / Classical ML"]
+        EI_T --> EI_O["EON Tuner Optimization"]
     end
 
-    subgraph 3_Deployment ["3️⃣ Edge Deployment & Actuation"]
-        EI_O -->|Export C++ Library| MCU2[🤖 Nano 33 BLE Sense<br/>Real-Time Inference]
-        MCU2 -->|Method A| ACT1[🔦 IR LED Emitter]
-        MCU2 -->|Method B| ACT2[⚡ 220V AC Relay]
-        MCU2 -->|Method C| ACT3[🏠 Smart Home / Fingerbot]
+    subgraph Phase3 ["3. Edge Deployment"]
+        EI_O -->|Export C++ Lib| MCU2["Nano 33 BLE Inference"]
+        MCU2 --> ACT1["Method A: IR LED Emitter"]
+        MCU2 --> ACT2["Method B: 220V AC Relay"]
+        MCU2 --> ACT3["Method C: Smart Home Bot"]
     end
 ```
 
@@ -184,7 +186,7 @@ While the intelligent air conditioner control system is a simplified proof of co
 
 When targeting microcontrollers, you must carefully weigh model complexity against hardware memory boundaries:
 
-* **Classical ML Algorithms (Compact & Ideal for 8-bit MCUs):** Classical Machine Learning algorithms, such as **regression models**, require significantly less processing power and memory than neural networks. Because these models are naturally compact, they are much better suited for resource-constrained boards like the **Arduino UNO** without needing external storage—even.
+* **Classical ML Algorithms (Compact & Ideal for 8-bit MCUs):** Classical Machine Learning algorithms, such as **regression models**, require significantly less processing power and memory than neural networks. Because these models are naturally compact, they are much better suited for resource-constrained boards like the **Arduino UNO** without needing external storage—even though Edge Impulse charges to deploy its Classical ML blocks.
 * **Neural Networks (NNs / CNNs) on Constrained Devices:** While Edge Impulse demonstrates efficient resource utilization on the **Arduino Nano 33 BLE Sense** (even with complex neural networks and CNNs), deploying neural networks on an **Arduino UNO** is severely limited by its **2 KB RAM** and **1 KB ROM (EEPROM)**. While examples of running Neural Networks on an Arduino UNO exist, the networks that developers have managed to fit natively are **extremely simplistic and rudimentary**; any larger neural network architecture requires careful design and external memory solutions such as **microSD cards**.
 
 | Feature / Specification | 🚀 Arduino Nano 33 BLE Sense | 🐢 Arduino UNO (ATmega328P) |
