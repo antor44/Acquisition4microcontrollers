@@ -39,20 +39,20 @@ Although the primary goal of this project is TinyML data collection, the **Ardui
 Instead of decoding full manufacturer-specific frames, this implementation strips away unnecessary parts and reads an **intermediate slice of the 38 kHz PWM frame**. This creates an arbitrary, "universal" protocol capable of reacting to almost any household remote control while actively filtering out false positives (such as accidental triggers when changing TV channels or adjusting the AC).
 
 ```mermaid
-%%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false, "padding": 30, "nodeSpacing": 40, "rankSpacing": 40}}}%%
 flowchart TD
-    A(["📡 38 kHz IR Remote"]) -->|PWM Pulses| B["📟 IR Receiver Module"]
-    B -->|Interrupt| C["⚡ measureTimingISR()"]
-    C -->|Bits > 39| D["✂️ Generate Arbitrary Key"]
-    D --> E{"🛡️ translateIR() Filter"}
-    E -->|TV or AC Key| F(["🚫 Discard False Positive"])
-    E -->|Valid Key| G(["✅ Toggle Data Acquisition"])
+    A["📡 38 kHz IR Remote&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] -->|"PWM Pulses&nbsp;&nbsp;"| B["📟 IR Receiver Module&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+    B -->|"Interrupt&nbsp;&nbsp;"| C["⚡ measureTimingISR()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+    C -->|"Bits > 39&nbsp;&nbsp;"| D["✂️ Generate Arbitrary Key&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+    D --> E["🛡️ translateIR() Filter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+    E -->|"TV or AC Key&nbsp;&nbsp;"| F["🚫 Discard False Positive&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+    E -->|"Valid Key&nbsp;&nbsp;"| G["✅ Toggle Data Acquisition&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
 
-    classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
-    classDef process fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c;
-    classDef filter fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#ff6f00;
-    classDef reject fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#b71c1c;
-    classDef accept fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20;
+    classDef default font-size:80%;
+    classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b,font-size:80%,rx:8px,ry:8px;
+    classDef process fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c,font-size:80%,rx:8px,ry:8px;
+    classDef filter fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#ff6f00,font-size:80%,rx:8px,ry:8px;
+    classDef reject fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#b71c1c,font-size:80%,rx:8px,ry:8px;
+    classDef accept fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20,font-size:80%,rx:8px,ry:8px;
 
     class A,B input;
     class C,D process;
@@ -126,36 +126,38 @@ Since the classic Arduino UNO lacks onboard environmental sensors, external modu
 The diagram below illustrates the complete workflow from raw sensor acquisition to real-time inference on the microcontroller:
 
 ```mermaid
-%%{init: {"htmlLabels": false, "flowchart": {"htmlLabels": false, "padding": 30, "nodeSpacing": 35, "rankSpacing": 40}}}%%
 flowchart TD
-    subgraph Phase1 ["1. Edge Data Collection"]
-        S(["🌡️ Ambient Sensors"]) --> MCU1["🎛️ Arduino / Nano 33 BLE"]
-        IR(["📱 IR Remote Trigger"]) -->|Toggle State| MCU1
+    subgraph Phase1 ["1️⃣ Edge Data Collection&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        S["🌡️ Ambient Sensors&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] --> MCU1["🎛️ Arduino / Nano 33 BLE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        IR["📱 IR Remote Trigger&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"] -->|"Toggle State&nbsp;&nbsp;"| MCU1
     end
 
-    subgraph Phase2 ["2. Edge Impulse Studio"]
-        MCU1 -->|Upload CSV| EI_D["📊 Dataset Formatting"]
-        EI_D --> EI_I["⚙️ Create Impulse"]
-        EI_I --> EI_T["🧠 Train NN / CNN / Classical ML"]
-        EI_T --> EI_O["🚀 EON Tuner Optimization"]
+    subgraph Phase2 ["2️⃣ Edge Impulse Studio&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        MCU1 -->|"Upload CSV&nbsp;&nbsp;"| EI_D["📊 Dataset Formatting&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        EI_D --> EI_I["⚙️ Create Impulse&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        EI_I --> EI_T["🧠 Train NN / CNN / Classical ML&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        EI_T --> EI_O["🚀 EON Tuner Optimization&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
     end
 
-    subgraph Phase3 ["3. Edge Deployment & Actuation"]
-        EI_O -->|Export C++ Lib| MCU2["🤖 Nano 33 BLE Inference"]
-        MCU2 --> ACT1(["🔦 Option A: IR LED Emitter"])
-        MCU2 --> ACT2(["⚡ Option B: 220V AC Relay"])
-        MCU2 --> ACT3(["🏠 Option C: Smart Home Bot"])
+    subgraph Phase3 ["3️⃣ Edge Deployment & Actuation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        EI_O -->|"Export C++ Lib&nbsp;&nbsp;"| MCU2["🤖 Nano 33 BLE Inference&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        MCU2 --> ACT1["🔦 Option A: IR LED Emitter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        MCU2 --> ACT2["⚡ Option B: 220V AC Relay&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        MCU2 --> ACT3["🏠 Option C: Smart Home Bot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
     end
 
-    classDef edge fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#004d40;
-    classDef cloud fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100;
-    classDef deploy fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:#1a237e;
-    classDef actuator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef default font-size:80%;
+    classDef edge fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#004d40,font-size:80%,rx:8px,ry:8px;
+    classDef cloud fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100,font-size:80%,rx:8px,ry:8px;
+    classDef deploy fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:#1a237e,font-size:80%,rx:8px,ry:8px;
+    classDef actuator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,font-size:80%,rx:8px,ry:8px;
+    classDef subStyle font-size:85%;
 
     class S,IR,MCU1 edge;
     class EI_D,EI_I,EI_T,EI_O cloud;
     class MCU2 deploy;
     class ACT1,ACT2,ACT3 actuator;
+    class Phase1,Phase2,Phase3 subStyle;
 ```
 
 ---
