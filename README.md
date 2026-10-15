@@ -47,12 +47,12 @@ flowchart TD
     E -->|"TV or AC Key&nbsp;&nbsp;"| F["🚫 Discard False Positive&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
     E -->|"Valid Key&nbsp;&nbsp;"| G["✅ Toggle Data Acquisition&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
 
-    classDef default font-size:90%;
-    classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b,font-size:90%,rx:8px,ry:8px;
-    classDef process fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c,font-size:90%,rx:8px,ry:8px;
-    classDef filter fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#ff6f00,font-size:90%,rx:8px,ry:8px;
-    classDef reject fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#b71c1c,font-size:90%,rx:8px,ry:8px;
-    classDef accept fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20,font-size:90%,rx:8px,ry:8px;
+    classDef default font-size:80%;
+    classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b,font-size:80%,rx:8px,ry:8px;
+    classDef process fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c,font-size:80%,rx:8px,ry:8px;
+    classDef filter fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#ff6f00,font-size:80%,rx:8px,ry:8px;
+    classDef reject fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#b71c1c,font-size:80%,rx:8px,ry:8px;
+    classDef accept fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20,font-size:80%,rx:8px,ry:8px;
 
     class A,B input;
     class C,D process;
@@ -146,11 +146,11 @@ flowchart TD
         MCU2 --> ACT3["🏠 Option C: Smart Home Bot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
     end
 
-    classDef default font-size:90%;
-    classDef edge fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#004d40,font-size:90%,rx:8px,ry:8px;
-    classDef cloud fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100,font-size:90%,rx:8px,ry:8px;
-    classDef deploy fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:#1a237e,font-size:90%,rx:8px,ry:8px;
-    classDef actuator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,font-size:90%,rx:8px,ry:8px;
+    classDef default font-size:80%;
+    classDef edge fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#004d40,font-size:80%,rx:8px,ry:8px;
+    classDef cloud fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100,font-size:80%,rx:8px,ry:8px;
+    classDef deploy fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:#1a237e,font-size:80%,rx:8px,ry:8px;
+    classDef actuator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,font-size:80%,rx:8px,ry:8px;
     classDef subStyle font-size:85%;
 
     class S,IR,MCU1 edge;
