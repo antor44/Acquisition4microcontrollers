@@ -34,7 +34,7 @@
 The code in this repository acquires environmental data for Machine Learning applications while allowing the user to manually toggle the **data acquisition mode (ON/OFF)**—or label user comfort states—using **any standard infrared (IR) remote control**.
 
 ### How the Heuristic IR Protocol Works
-Although the primary goal of this project is TinyML data collection, the **Arduino Nano 33 BLE Sense** sketch includes low-level, interrupt-driven instructions to analyze infrared frames based on the NEC protocol (adapted from [Frank Meyer's IRMP library](https://github.com/ukw100/IRMP/)). 
+Although the primary goal of this project is TinyML data collection, the **Arduino Nano 33 BLE Sense** sketch includes low-level, interrupt-driven instructions to analyze infrared frames based on the NEC protocol (adapted from [Frank Meyer's IRMP library](https://github.com/ukw100/IRMP/)). In reality, this part of the code is for the author's personal needs; it is generally unnecessary or just for convenience.
 
 Instead of decoding full manufacturer-specific frames, this implementation strips away unnecessary parts and reads an **intermediate slice of the 38 kHz PWM frame**. This creates an arbitrary, "universal" protocol capable of reacting to almost any household remote control while actively filtering out false positives (such as accidental triggers when changing TV channels or adjusting the AC).
 
